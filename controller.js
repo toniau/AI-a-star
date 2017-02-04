@@ -73,7 +73,10 @@ function getRandomCoords(){
             for(var k=upper; upper <= lower; upper++){
                 var tmp = getProbability();
                 if(tmp==0){
-                    arr[left][upper]
+                    arr[left][upper] = "unblocked";
+                }
+                else if(tmp==1){
+                    arr[left][upper] = "hard";
                 }
             }
         }
