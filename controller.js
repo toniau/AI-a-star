@@ -62,5 +62,4 @@ $(document).ready(function() {
         console.log("Status: " + $(this).attr('status'));
     });
     
-    getRandomCoords();
 });
