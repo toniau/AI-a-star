@@ -1,9 +1,16 @@
 /* Javascript for A-Star */
 
-function tile(color, path){
+function tile(color, path, cost){
     this.color = color;
     this.path = path;
+    this.cost = cost;
 };
+
+/* Create Corresponding Array of Map */
+var arr = new Array(160);
+for(j=0,; j < 120; j++){
+    arr[j] = new Array(120);
+}
 
 /* Create Grid Map Function */
 function createGrid(columns, rows) {
@@ -21,6 +28,7 @@ function createGrid(columns, rows) {
         }
     }
 }
+
 
 /* Select Random Coordinates */
 function getRandomCoords(){
@@ -40,10 +48,35 @@ function getRandomCoords(){
         yArray.push(Math.random() * (121)); 
     }
     
+    /* Get 31x31 region for coordinate pair and
+    decide if cell is hard to traverse or not */
     for(var i=0; i < 8; i++){
-        var TL = xArray[i] - 15;
-        var TR = xArray[i] + 15;
-
+        var left = xArray[i] - 15;
+        var right = xArray[i] + 15;
+        var lower = yArray[i] + 15;
+        var upper = yArray[i] - 15;
+        
+        if(left < 0){
+            left = 0;
+        }
+        if(right > 160){
+            right = 160;
+        }
+        if(lower > 120){
+            lower = 120;
+        }
+        if(upper < 0){
+            upper =0;
+        }
+        
+        for(var j=left; left <= right; left++){
+            for(var k=upper; upper <= lower; upper++){
+                var tmp = getProbability();
+                if(tmp==0){
+                    arr[left][upper]
+                }
+            }
+        }
     }
 }
 
