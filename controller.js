@@ -8,7 +8,8 @@ function tile(color, path, cost){
 
 /* Create Corresponding Array of Map */
 var arr = new Array(160);
-for(j=0,; j < 120; j++){
+
+for(j=0; j < 120; j++){
     arr[j] = new Array(120);
 }
 
@@ -66,7 +67,7 @@ function getRandomCoords(){
             lower = 120;
         }
         if(upper < 0){
-            upper =0;
+            upper = 0;
         }
         
         for(var j=left; left <= right; left++){
@@ -86,6 +87,7 @@ function getRandomCoords(){
 function getProbability() {
     var probability = [0,1];
     var idx = Math.floor(Math.random() * 2);
+    console.log(probability[idx]);
     return probability[idx];
 }
 
