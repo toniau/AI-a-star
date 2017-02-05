@@ -1,15 +1,21 @@
 /* Javascript for A-Star */
 
+const TILE_BLOCKED = "0";
+const TILE_EMPTY = "1";
+const TILE_HARD = "2";
+const TILE_RIVER = "a";
+const TILE_HARD_RIVER = "b";
+
+
 function tile(color, path, cost){
     this.color = color;
     this.path = path;
     this.cost = cost;
-};
+}
 
 /* Create Corresponding Array of Map */
 var arr = new Array(160);
-
-for(j=0; j < 120; j++){
+for(j=0; j < 160; j++){
     arr[j] = new Array(120);
 }
 
@@ -30,41 +36,51 @@ function createGrid(columns, rows) {
     }
 }
 
+function getProbability() {
+    var probability = [0,1];
+    var idx = Math.floor(Math.random() * 2);
+    console.log("Probability: " + probability[idx]);
+    return probability[idx];
+}
 
-/* Select Random Coordinates */
+var centers = [];
+
+/* Select Random Coordinates*/
 function getRandomCoords(){
-    var xArray = [];
-    var yArray = [];
     
-    for(var i=0; i < 8; i++){
-        var x = Math.random() * (161);
-        xArray.push(x);
+    for(var i=0; i<8; i++){
+        var x = Math.floor(Math.random() * (160));
+        var y = Math.floor(Math.random() * (120));
         
-        for(var j=0; j < xArray.length; j++){
-            if((xArray.length > 1) && (x=xArray[j])){
-                x = Math.random() * (161);
-                xArray.push(x);
-            }
+        var coord = {'x' : x, 'y': y};
+        
+        if(centers.includes(coord)) {
+            i--;
+        } else {
+            centers.push(coord);
         }
-        yArray.push(Math.random() * (121)); 
+        
+        //console.log("x: " + x + " y: " + y);
+        //console.log(coord);
+        //console.log(centers[i]);
     }
     
     /* Get 31x31 region for coordinate pair and
-    decide if cell is hard to traverse or not */
+    decide if cell is hard to traverse or not*/
     for(var i=0; i < 8; i++){
-        var left = xArray[i] - 15;
-        var right = xArray[i] + 15;
-        var lower = yArray[i] + 15;
-        var upper = yArray[i] - 15;
+        var left = centers[i].x - 15;
+        var right = centers[i].x + 15;
+        var lower = centers[i].y + 15;
+        var upper = centers[i].y - 15;
         
         if(left < 0){
             left = 0;
         }
-        if(right > 160){
-            right = 160;
+        if(right > 159){
+            right = 159;
         }
-        if(lower > 120){
-            lower = 120;
+        if(lower > 119){
+            lower = 119;
         }
         if(upper < 0){
             upper = 0;
@@ -79,16 +95,11 @@ function getRandomCoords(){
                 else if(tmp==1){
                     arr[left][upper] = "hard";
                 }
+                //console.log(arr[left][upper]);
             }
         }
     }
-}
-
-function getProbability() {
-    var probability = [0,1];
-    var idx = Math.floor(Math.random() * 2);
-    console.log(probability[idx]);
-    return probability[idx];
+    return;
 }
 
 $(document).ready(function() {
@@ -99,5 +110,7 @@ $(document).ready(function() {
         console.log("Column: " + $(this).attr('data-column'));
         console.log("Status: " + $(this).attr('status'));
     });
+    
+    getRandomCoords();
     
 });
