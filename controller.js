@@ -52,12 +52,19 @@ function createGrid(columns, rows) {
             arr[j][i] = new tile(TILE_EMPTY, j, i);
         }
     }
+
+    /*
+    for (let row = 0; row < rows; row++) {
+        for (let col = 0; col < columns; col++) {
+            console.log(arr[col][row].type);
+        }
+    }
+    */
 }
 
 function getProbability() {
     let probability = [0,1];
     let idx = Math.floor(Math.random() * 2);
-    //console.log("Probability: " + probability[idx]);
     return probability[idx];
 }
 
@@ -78,9 +85,6 @@ function getRandomCoords(){
             centers.push(coord);
         }
         
-        console.log("x: " + x + " y: " + y);
-        //console.log(coord);
-        //console.log(centers[i]);
     }
     
     /* Get 31x31 region for coordinate pair and
@@ -108,8 +112,7 @@ function getRandomCoords(){
         for(let j=left; j <= right; j++){
             for(let k=upper; k <= lower; k++){
                 let tmp = getProbability();
-                console.log("arr[j][k]: " + arr[j][k].type);
-                if(tmp===1 /*&& (arr[j][k].type===TILE_EMPTY)*/){
+                if(tmp===1){
                     arr[j][k] = new tile(TILE_HARD, j, k);
                 } 
             }
@@ -120,56 +123,41 @@ function getRandomCoords(){
     return;
 }
 
-function moveDirection(x, y, direction){
-    switch(direction){
+function getNextRiverDirection(direction) {
+    let p = Math.random();
+    if (p < 0.2) { // Left
+        switch(direction){
             case "N":
-                return y--;
+                return "W";
                 break;
             case "E":
-                return x++;
+                return "N";
                 break;
             case "S":
-                return y++;
+                return "W";
                 break;
             case "W":
-                return x--;
+                return "S";
                 break;
         }
-}
-
-function tryLeft(coord, direction){
-    switch(direction){
+    } else if (p < 0.4) { // Right
+        switch(direction){
             case "N":
-                let x = coord.x - 1;
-                return coord.x;
+                return "E";
                 break;
             case "E":
-                return y++;
+                return "S";
                 break;
             case "S":
-                return x++;
+                return "W";
                 break;
             case "W":
-                return y--;
+                return "N";
                 break;
         }
-}
-
-function tryRight(coord, direction){
-    switch(direction){
-            case "N":
-                return x++;
-                break;
-            case "E":
-                return y--;
-                break;
-            case "S":
-                return x--;
-                break;
-            case "W":
-                return y++;
-                break;
-        }
+    } else {
+        return direction;
+    }
 }
 
 function generateHighway(){
@@ -177,7 +165,6 @@ function generateHighway(){
     let x = 0;
     let y = 0;
     let direction = "";
-    let highwayPts = [];
     
     switch(Math.floor(Math.random() * 4)){
             
@@ -214,75 +201,85 @@ function generateHighway(){
             direction = "E";
             break;
     }
-    
-    //let coord = {'x' : x, 'y': y};
-    //highwayPts.push(coord);
+
+    let riverCells = [];
+    let riverLength = 0;
+    console.log("START: " + x + ", " + y);
     
     /* 20 spaces away */
-    for(let i=0; i < 20; i++){
-        
-        //console.log("PLS LOOP " + i);
-        
-        if(arr[x][y].type === TILE_HARD){
-            arr[x][y] = new tile(TILE_HARD_RIVER, x, y)
-        } else {
-            arr[x][y] = new tile(TILE_RIVER, x, y)
-        }
-        
-        switch(direction){
-            case "N":
-                y--;
-                break;
-            case "E":
-                x++;
-                break;
-            case "S":
-                y++;
-                break;
-            case "W":
-                x--;
-                break;
-        }
-    }
-    
-    /*coord.x = x;
-    coord.y = y;
-    console.log("Coord: " + coord);
-    highwayPts.push(coord);
-    
-    /* Continue highway generation */
-    
-    let attempts = 0;
-    let p = Math.random();
-    /*for(let i=0; i < 20; i++){
-        /* 60% Chance - move same direction
-        if (p < 0.6) {
-            moveDirection(x, y, direction);
-            
-            if(arr[x][y].type===TILE_HARD_RIVER || arr[x][y].type===TILE_RIVER){
-                x = highwayPts[highwayPts.length-1].x;
-                y = highwayPts[highwayPts.length-1].y;
-                attempts++;
-                let tmp = getProbability();
-                if(tmp===0){
-                    tryLeft(coord, direction);
-                    moveDirection(x, y, )
-                    attempts++;
+    while (true) {
+        for(let i=0; i < 20; i++){
+            let coord = [x, y];
+            riverCells.push(coord);
+            riverLength++;
+            if (x < 0 || x >= 160) {
+                if (riverLength < 100) {
+                    console.log('TOO SHORT');
+                    backtrackRiver(riverCells, riverLength);
+                    return false;
                 } else {
-                    tryRight(coord, direction);
+                    return true;
+                }
+            }
+            if (y < 0 || y >= 120) {
+                if (riverLength < 100) {
+                    console.log('TOO SHORT');
+                    backtrackRiver(riverCells, riverLength);
+                    return false;
+                } else {
+                    return true;
                 }
             }
             
-        } else if (p < 0.8) {
-            //left
-        } else {
-            //right
+
+            if(arr[x][y].type === TILE_HARD){
+                arr[x][y] = new tile(TILE_HARD_RIVER, x, y)
+            } else if (arr[x][y].type === TILE_RIVER || arr[x][y].type === TILE_HARD_RIVER) {
+                console.log("HIT RIVER");
+                backtrackRiver(riverCells, riverLength); 
+                return false; // Failed, hit another river
+            } else {
+                arr[x][y] = new tile(TILE_RIVER, x, y)
+            }
+
+            switch(direction){
+              case "N":
+                  y--;
+                  break;
+              case "E":
+                  x++;
+                  break;
+              case "S":
+                  y++;
+                  break;
+              case "W":
+                  x--;
+                  break;
+            }
         }
-    }*/
-    
-    
-    
-    
+
+        // Choose next direction
+        direction = getNextRiverDirection(direction);
+    }
+}
+
+function backtrackRiver(riverCells, riverLength, direction) {
+    console.log("backtracking length: " + riverLength);
+    console.log(riverCells[riverCells.length - 1]);
+
+    for (let i = 0; i < riverCells.length - 1; i++) {
+        let x = riverCells[i][0];
+        let y = riverCells[i][1];
+
+        // console.log(riverCells[i]);
+
+        if (arr[x][y].type === TILE_HARD_RIVER) {
+            arr[x][y] = new tile(TILE_HARD, x, y);
+        } else {
+            arr[x][y] = new tile(TILE_EMPTY, x, y);
+        }
+    }
+
 }
 
 $(document).ready(function() {
@@ -295,6 +292,11 @@ $(document).ready(function() {
     });
     
     getRandomCoords();
-    generateHighway();
-    
+
+    for (let i = 0; i < 4; i++) {
+        console.log("river #: " + i);
+        if (!generateHighway()) {
+            i--;
+        }
+    }
 });
