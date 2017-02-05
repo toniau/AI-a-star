@@ -9,67 +9,67 @@ const TILE_HARD_RIVER = "b";
 
 function tile(type, x, y){
     this.type = type;
-    var id = '#'+x+'-'+y;
+    let id = '#'+x+'-'+y;
     switch(this.type){
         case TILE_EMPTY:
-            $(id).css('color', '#FFF');
+            $(id).css('background-color', '#FFF');
             break;
         case TILE_HARD: 
-            $(id).css('color', '#F4A460');
+            $(id).css('background-color', '#F4A460');
             break;
         case TILE_RIVER:
-            $(id).css('color', 'skyblue');
+            $(id).css('background-color', 'skyblue');
             break;
         case TILE_HARD_RIVER:
-            $(id).css('color', 'navy');
+            $(id).css('background-color', 'navy');
             break;
         case TILE_BLOCKED:
-            $(id).css('color', '#333');
+            $(id).css('background-color', '#333');
             break;
     }
+
 }
 
 /* Create Corresponding Array of Map */
-var arr = new Array(160);
+let arr = new Array(160);
 for(j=0; j < 160; j++){
     arr[j] = new Array(120);
 }
 
 /* Create Grid Map Function */
 function createGrid(columns, rows) {
-    var table = $('.table');
+    let table = $('.table');
 
-    for (var i = 0; i < rows; i++) {
-        var row = $('<tr>');
+    for (let i = 0; i < rows; i++) {
+        let row = $('<tr>');
         table.append(row)
-        for (var j = 0; j < columns; j++) {
-            var cell = $('<td>')
+        for (let j = 0; j < columns; j++) {
+            let cell = $('<td>')
             cell.attr('id',i+'-'+j);
             cell.attr('data-row', i);
             cell.attr('data-column', j);
-            cell.attr('status', 'unblocked');
             row.append(cell);
         }
     }
 }
 
 function getProbability() {
-    var probability = [0,1];
-    var idx = Math.floor(Math.random() * 2);
-    console.log("Probability: " + probability[idx]);
+    let probability = [0,1];
+    let idx = Math.floor(Math.random() * 2);
+    //console.log("Probability: " + probability[idx]);
     return probability[idx];
 }
 
-var centers = [];
+let centers = [];
 
 /* Select Random Coordinates*/
 function getRandomCoords(){
     
-    for(var i=0; i<8; i++){
-        var x = Math.floor(Math.random() * (160));
-        var y = Math.floor(Math.random() * (120));
+    for(let i=0; i<8; i++){
+        let x = Math.floor(Math.random() * (160));
+        let y = Math.floor(Math.random() * (120));
         
-        var coord = {'x' : x, 'y': y};
+        let coord = {'x' : x, 'y': y};
         
         if(centers.includes(coord)) {
             i--;
@@ -77,18 +77,18 @@ function getRandomCoords(){
             centers.push(coord);
         }
         
-        //console.log("x: " + x + " y: " + y);
+        console.log("x: " + x + " y: " + y);
         //console.log(coord);
         //console.log(centers[i]);
     }
     
     /* Get 31x31 region for coordinate pair and
     decide if cell is hard to traverse or not*/
-    for(var i=0; i < 8; i++){
-        var left = centers[i].x - 15;
-        var right = centers[i].x + 15;
-        var lower = centers[i].y + 15;
-        var upper = centers[i].y - 15;
+    for(let i=0; i < 8; i++){
+        let left = centers[i].x - 15;
+        let right = centers[i].x + 15;
+        let lower = centers[i].y + 15;
+        let upper = centers[i].y - 15;
         
         if(left < 0){
             left = 0;
@@ -103,26 +103,27 @@ function getRandomCoords(){
             upper = 0;
         }
         
-        for(var j=left; left <= right; left++){
-            for(var k=upper; upper <= lower; upper++){
-                var tmp = getProbability();
-                if(tmp==0){
-                    arr[left][upper] = new tile(TILE_EMPTY, left, upper);
+        for(let j=left; j <= right; j++){
+            for(let k=upper; k <= lower; k++){
+                let tmp = getProbability();
+                if(tmp===0){
+                    arr[j][k] = new tile(TILE_EMPTY, j, k);
                 }
-                else if(tmp==1){
-                    arr[left][upper] = new tile(TILE_HARD, left, upper);
+                else if(tmp===1){
+                    arr[j][k] = new tile(TILE_HARD, j, k);
                 }
-                //console.log(arr[left][upper]);
             }
+            
         }
+        console.log(i)
     }
     return;
 }
 
 function generateHighway(){
     
-    var x = 0;
-    var y = 0;
+    let x = 0;
+    let y = 0;
     
     switch(Math.floor(Math.random() * 4)){
             
@@ -149,7 +150,7 @@ function generateHighway(){
     }
     
     /* 20 spaces away*/
-    for(var i=0; i < 20; i++){
+    for(let i=0; i < 20; i++){
         
     }
     
@@ -163,7 +164,6 @@ $(document).ready(function() {
         console.log("Id: " + $(this).attr('id'));
         console.log("Row: " + $(this).attr('data-row'));
         console.log("Column: " + $(this).attr('data-column'));
-        console.log("Status: " + $(this).attr('status'));
     });
     
     getRandomCoords();
