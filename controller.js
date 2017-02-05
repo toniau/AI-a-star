@@ -18,7 +18,7 @@ function tile(type, x, y){
             $(id).css('background-color', '#F4A460');
             break;
         case TILE_RIVER:
-            $(id).css('background-color', 'skyblue');
+            $(id).css('background-color', 'blue');
             break;
         case TILE_HARD_RIVER:
             $(id).css('background-color', 'navy');
@@ -45,10 +45,11 @@ function createGrid(columns, rows) {
         table.append(row)
         for (let j = 0; j < columns; j++) {
             let cell = $('<td>')
-            cell.attr('id',i+'-'+j);
+            cell.attr('id',j+'-'+i);
             cell.attr('data-row', i);
             cell.attr('data-column', j);
             row.append(cell);
+            arr[i][j] = new tile(TILE_EMPTY, i, j);
         }
     }
 }
@@ -103,19 +104,17 @@ function getRandomCoords(){
             upper = 0;
         }
         
+
         for(let j=left; j <= right; j++){
             for(let k=upper; k <= lower; k++){
                 let tmp = getProbability();
-                if(tmp===0){
-                    arr[j][k] = new tile(TILE_EMPTY, j, k);
-                }
-                else if(tmp===1){
+                if(tmp===1 && (arr[j][k].type===TILE_EMPTY)){
                     arr[j][k] = new tile(TILE_HARD, j, k);
                 }
             }
             
         }
-        console.log(i)
+        //console.log(i)
     }
     return;
 }
@@ -124,6 +123,8 @@ function generateHighway(){
     
     let x = 0;
     let y = 0;
+    let direction = "";
+    let highwayPts = [];
     
     switch(Math.floor(Math.random() * 4)){
             
@@ -131,28 +132,77 @@ function generateHighway(){
         case 0:
             x = Math.floor(Math.random() * (160));
             y = 0;
+            direction = "S";
             break;
         //East
         case 1:
             x = 159;
             y = Math.floor(Math.random() * (120));
+            direction = "W";
             break;
         //South
         case 2:
             x = Math.floor(Math.random() * (160));
             y = 119;
+            direction = "N";
             break;
         //West
         case 3:
             x = 0;
             y = Math.floor(Math.random() * (120));
+            direction = "E";
             break;
     }
     
-    /* 20 spaces away*/
+    /* 20 spaces away */
     for(let i=0; i < 20; i++){
         
+        //console.log("PLS LOOP " + i);
+        
+        if(arr[x][y].type === TILE_HARD){
+            arr[x][y] = new tile(TILE_HARD_RIVER, x, y)
+        } else {
+            arr[x][y] = new tile(TILE_RIVER, x, y)
+        }
+        
+        switch(direction){
+            case "N":
+                y--;
+                break;
+            case "E":
+                x++;
+                break;
+            case "S":
+                y++;
+                break;
+            case "W":
+                x--;
+                break;
+        }
     }
+    
+     /* Continue highway generation */
+    
+    let p = Math.random();
+    if (p < 0.6) {
+        for(let i=0; i < 20; i++){
+            if(arr[x][y].type === TILE_HARD){
+                arr[x][y] = new tile(TILE_HARD_RIVER, x, y)
+            }
+            else if(arr[x][y].type === TILE_HARD_RIVER){
+                i=-1;
+            }
+            else {
+                arr[x][y] = new tile(TILE_RIVER, x, y)
+            }
+        }
+    } else if (p < 0.8) {
+        left
+    } else {
+        right
+    }
+    
+    
     
     
 }
@@ -167,5 +217,6 @@ $(document).ready(function() {
     });
     
     getRandomCoords();
+    generateHighway();
     
 });
