@@ -118,7 +118,6 @@ function getRandomCoords(){
             }
             
         }
-        //console.log(i)
     }
     return;
 }
@@ -204,7 +203,6 @@ function generateHighway(){
 
     let riverCells = [];
     let riverLength = 0;
-    console.log("START: " + x + ", " + y);
     
     /* 20 spaces away */
     while (true) {
@@ -214,7 +212,6 @@ function generateHighway(){
             riverLength++;
             if (x < 0 || x >= 160) {
                 if (riverLength < 100) {
-                    console.log('TOO SHORT');
                     backtrackRiver(riverCells, riverLength);
                     return false;
                 } else {
@@ -223,7 +220,6 @@ function generateHighway(){
             }
             if (y < 0 || y >= 120) {
                 if (riverLength < 100) {
-                    console.log('TOO SHORT');
                     backtrackRiver(riverCells, riverLength);
                     return false;
                 } else {
@@ -235,7 +231,6 @@ function generateHighway(){
             if(arr[x][y].type === TILE_HARD){
                 arr[x][y] = new tile(TILE_HARD_RIVER, x, y)
             } else if (arr[x][y].type === TILE_RIVER || arr[x][y].type === TILE_HARD_RIVER) {
-                console.log("HIT RIVER");
                 backtrackRiver(riverCells, riverLength); 
                 return false; // Failed, hit another river
             } else {
@@ -264,8 +259,6 @@ function generateHighway(){
 }
 
 function backtrackRiver(riverCells, riverLength, direction) {
-    console.log("backtracking length: " + riverLength);
-    console.log(riverCells[riverCells.length - 1]);
 
     for (let i = 0; i < riverCells.length - 1; i++) {
         let x = riverCells[i][0];
@@ -282,6 +275,19 @@ function backtrackRiver(riverCells, riverLength, direction) {
 
 }
 
+function generateBlocks() {
+    for (let i = 0; i < 3840; i++) { // 20% of 160*120
+        let x = Math.floor((Math.random() * 160));
+        let y = Math.floor((Math.random() * 120));
+
+        if (arr[x][y].type !== TILE_EMPTY) {
+            i--;
+        } else {
+            arr[x][y] = new tile(TILE_BLOCKED, x, y);
+        }
+    }
+}
+
 $(document).ready(function() {
     createGrid(160, 120);
     
@@ -293,10 +299,13 @@ $(document).ready(function() {
     
     getRandomCoords();
 
+    // Four rivers
     for (let i = 0; i < 4; i++) {
         console.log("river #: " + i);
         if (!generateHighway()) {
             i--;
         }
     }
+
+    generateBlocks();
 });
