@@ -2,7 +2,8 @@ body {
     height: 100%;
     width: 100%;
     padding: 5px;
-    padding-right: 15px
+    padding-right: 15px;
+    overflow-x: hidden;
 }
 
 table, tr, td {
@@ -11,6 +12,14 @@ table, tr, td {
 }
 
 td {
-    width: 10px;
-    height: 10px;
+    width: 8px;
+    height: 6px;
+}
+
+#fileUpload {
+    padding-bottom: 15px;
+}
+
+#output {
+    padding-top: 15px;
 }
