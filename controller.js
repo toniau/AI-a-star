@@ -7,10 +7,26 @@ const TILE_RIVER = "a";
 const TILE_HARD_RIVER = "b";
 
 
-function tile(color, path, cost){
-    this.color = color;
-    this.path = path;
-    this.cost = cost;
+function tile(type, x, y){
+    this.type = type;
+    var id = '#'+x+'-'+y;
+    switch(this.type){
+        case TILE_EMPTY:
+            $(id).css('color', '#FFF');
+            break;
+        case TILE_HARD: 
+            $(id).css('color', '#F4A460');
+            break;
+        case TILE_RIVER:
+            $(id).css('color', 'skyblue');
+            break;
+        case TILE_HARD_RIVER:
+            $(id).css('color', 'navy');
+            break;
+        case TILE_BLOCKED:
+            $(id).css('color', '#333');
+            break;
+    }
 }
 
 /* Create Corresponding Array of Map */
@@ -28,9 +44,10 @@ function createGrid(columns, rows) {
         table.append(row)
         for (var j = 0; j < columns; j++) {
             var cell = $('<td>')
+            cell.attr('id',i+'-'+j);
             cell.attr('data-row', i);
-            cell.attr('data-column', j)
-            cell.attr('status', 'unblocked')
+            cell.attr('data-column', j);
+            cell.attr('status', 'unblocked');
             row.append(cell);
         }
     }
@@ -90,10 +107,10 @@ function getRandomCoords(){
             for(var k=upper; upper <= lower; upper++){
                 var tmp = getProbability();
                 if(tmp==0){
-                    arr[left][upper] = "unblocked";
+                    arr[left][upper] = new tile(TILE_EMPTY, left, upper);
                 }
                 else if(tmp==1){
-                    arr[left][upper] = "hard";
+                    arr[left][upper] = new tile(TILE_HARD, left, upper);
                 }
                 //console.log(arr[left][upper]);
             }
@@ -102,10 +119,48 @@ function getRandomCoords(){
     return;
 }
 
+function generateHighway(){
+    
+    var x = 0;
+    var y = 0;
+    
+    switch(Math.floor(Math.random() * 4)){
+            
+        //North
+        case 0:
+            x = Math.floor(Math.random() * (160));
+            y = 0;
+            break;
+        //East
+        case 1:
+            x = 159;
+            y = Math.floor(Math.random() * (120));
+            break;
+        //South
+        case 2:
+            x = Math.floor(Math.random() * (160));
+            y = 119;
+            break;
+        //West
+        case 3:
+            x = 0;
+            y = Math.floor(Math.random() * (120));
+            break;
+    }
+    
+    /* 20 spaces away*/
+    for(var i=0; i < 20; i++){
+        
+    }
+    
+    
+}
+
 $(document).ready(function() {
     createGrid(160, 120);
     
     $('.table').on('click', 'td', function () {
+        console.log("Id: " + $(this).attr('id'));
         console.log("Row: " + $(this).attr('data-row'));
         console.log("Column: " + $(this).attr('data-column'));
         console.log("Status: " + $(this).attr('status'));
