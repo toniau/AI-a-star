@@ -35,7 +35,7 @@ function tile(type, x, y){
             $(id).css('background-color', 'red');
             break;
         case TILE_GOAL:
-            $(id).css('background-color', 'cyan');
+            $(id).css('background-color', 'fuchsia');
             break;
         case TILE_PATH:
             $(id).css('background-color', 'chartreuse');
@@ -45,9 +45,9 @@ function tile(type, x, y){
 }
 
 /* Create Corresponding Array of Map */
-let arr = new Array(160);
+let arr = new Array(120);
 for(j=0; j < 160; j++){
-    arr[j] = new Array(120);
+    arr[j] = new Array(160);
 }
 
 /* Create Grid Map Function */
@@ -348,6 +348,9 @@ $(document).ready(function() {
     generateBlocks();
     setStartGoal();
     
+    astar();
+    fillPath();
+    
         /* Import File Reader */
     document.getElementById('file').onchange = function(){
 
@@ -437,8 +440,6 @@ $(document).ready(function() {
         $("textarea").remove();
         $("#push").show();
     });
-    
-    astar();
 });
 
 /*
@@ -583,7 +584,9 @@ function astar() {
     let start = {
         'x' : startCoord.x, 
         'y' : startCoord.y,
-        'g' : 0
+        'g' : 0,
+        'parentX': startCoord.x,
+        'parentY': startCoord.y,
     }
     let goal = {
         'x' : goalCoord.x,
@@ -595,27 +598,29 @@ function astar() {
     let closed = [];
     console.log(start);
     console.log(goal);
+    console.log(fringe.size());
 
-    while(fringe.size() !== 0) {
+    while(fringe.size() > 0) {
+        console.log('hi');
+        // console.log(fringe.size());
         let s = fringe.pop();
-        if (s.x === goal.x && s.y === goal.y) {
+        if (s.x == goal.x && s.y == goal.y) {
             console.log("Path found!");
             return;
         }
         closed.push(s);
 
         let succ = getNeighbors(s);
-        for (let i = 0; i < succ.length; i++) {
-            let sp = succ[i];
-            if (!closed.includes(sp)) {
-                if(!fringe.content.includes(sp)) {
+        succ.forEach(function(sp) {
+            if (closed.indexOf(sp) < 0) {
+                if(fringe.content.indexOf(sp) < 0) {
 					sp.g = Number.MAX_SAFE_INTEGER;
 					sp.parentX = null;
                     sp.parentY = null;
                 }
                 updateVertex(s, sp);
             }
-        }
+        });
     }
     console.log("No path found.");
 }
@@ -626,7 +631,7 @@ function updateVertex(s, sp) {
 		sp.parentX = s.x;
         sp.parentY = s.y;
         
-        if (fringe.content.includes(sp)) {
+        if (fringe.content.indexOf(sp) < 0) {
             fringe.remove(sp);
         }
         fringe.push(sp);
@@ -639,49 +644,48 @@ function getNeighbors(s) {
     let neighbors = [];
 
 	// NSEW
-	if (grid[x - 1] && grid[x - 1][y]) {
-		neighbors.push(grid[x - 1][y]);
+	if (grid[y - 1] && grid[y - 1][x]) {
+		neighbors.push(grid[y - 1][x]);
 	}
-	if (grid[x + 1] && grid[x + 1][y]) {
-		neighbors.push(grid[x + 1][y]);
+	if (grid[y + 1] && grid[y + 1][x]) {
+		neighbors.push(grid[y + 1][x]);
 	}
-	if (grid[x] && grid[x][y - 1]) {
-		neighbors.push(grid[x][y - 1]);
+	if (grid[y] && grid[y][x - 1]) {
+		neighbors.push(grid[y][x - 1]);
 	}
-	if (grid[x] && grid[x][y + 1]) {
-		neighbors.push(grid[x][y + 1]);
+	if (grid[y] && grid[y][x + 1]) {
+		neighbors.push(grid[y][x + 1]);
 	}
 
 	// Diagonals
-	if (grid[x - 1] && grid[x - 1][y - 1]) {
-		neighbors.push(grid[x - 1][y - 1]);
+	if (grid[y - 1] && grid[y - 1][x - 1]) {
+		neighbors.push(grid[y - 1][x - 1]);
 	}
-	if (grid[x + 1] && grid[x + 1][y - 1]) {
-		neighbors.push(grid[x + 1][y - 1]);
+	if (grid[y + 1] && grid[y + 1][x - 1]) {
+		neighbors.push(grid[y + 1][x - 1]);
 	}
-	if (grid[x - 1] && grid[x - 1][y + 1]) {
-		neighbors.push(grid[x - 1][y + 1]);
+	if (grid[y - 1] && grid[y - 1][x + 1]) {
+		neighbors.push(grid[y - 1][x + 1]);
 	}
-	if (grid[x + 1] && grid[x + 1][y + 1]) {
-		neighbors.push(grid[x + 1][y + 1]);
+	if (grid[y + 1] && grid[y + 1][x + 1]) {
+		neighbors.push(grid[y + 1][x + 1]);
 	}
     return neighbors;
 }
 
 function fillPath() {
-    console.log(startCoord);
-    console.log(goalCoord);
-    let x = goalCoord.x;
-    let y = goalCoord.y;
-    console.log(grid[0]);
+    let x = grid[goalCoord.y][goalCoord.x].parentX;
+    let y = grid[goalCoord.y][goalCoord.x].parentY;
 
-    while (x !== startCoord.x && y !== startCoord.y) {
-		let id = '#' + x + '-' + y;
+    while (x != startCoord.x && y != startCoord.y) {
+		var id = '#' + x + '-' + y;
         console.log(id);
 		$(id).css('background-color', 'chartreuse');
-        x = grid[x][y].parentX;
-        y = grid[x][y].parentY;
+        x = grid[y][x].parentX;
+        y = grid[y][x].parentY;
     }
+    console.log('hi' + id);
+    $(id).css('background-color', 'brown');
 }
 
 function getCost(s, sp) {
