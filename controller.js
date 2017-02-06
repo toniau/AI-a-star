@@ -35,10 +35,10 @@ function tile(type, x, y){
             $(id).css('background-color', 'red');
             break;
         case TILE_GOAL:
-            $(id).css('background-color', 'yellow');
+            $(id).css('background-color', 'chartreuse');
             break;
         case TILE_PATH:
-            $(id).css('background-color', 'chartreuse');
+            $(id).css('background-color', 'cyan');
             break;
     }
 
@@ -348,6 +348,7 @@ $(document).ready(function() {
     generateBlocks();
     setStartGoal();
     astar();
+    fillPath();
 });
 
 /*
@@ -473,6 +474,20 @@ BinaryHeap.prototype = {
 
 let fringe = new BinaryHeap(function(cell) { return cell.g; });
 
+let grid = [];
+for (let row = 0; row < 120; row++) {
+    grid.push([]);
+    for (let col = 0; col < 160; col++) {
+        grid[row].push({
+            'x': col,
+            'y': row,
+            'g': Number.MAX_SAFE_INTEGER,
+			'parentX': null,
+            'parentY': null
+        });
+    }
+}
+
 // A-Star
 function astar() {
     let start = {
@@ -487,7 +502,7 @@ function astar() {
 
     fringe.push(start);
 
-    let closed = new Set();
+    let closed = [];
     console.log(start);
     console.log(goal);
 
@@ -497,14 +512,16 @@ function astar() {
             console.log("Path found!");
             return;
         }
-        closed.add(s);
+        closed.push(s);
 
-        let succ = getNeighbors(s.x, s.y);
+        let succ = getNeighbors(s);
         for (let i = 0; i < succ.length; i++) {
             let sp = succ[i];
-            if (!closed.has(sp)) {
+            if (!closed.includes(sp)) {
                 if(!fringe.content.includes(sp)) {
-                    sp.g = Number.MAX_SAFE_INTEGER;
+					sp.g = Number.MAX_SAFE_INTEGER;
+					sp.parentX = null;
+                    sp.parentY = null;
                 }
                 updateVertex(s, sp);
             }
@@ -516,6 +533,8 @@ function astar() {
 function updateVertex(s, sp) {
     if (s.g + getCost(s, sp) < sp.g) {
         sp.g = s.g + getCost(s, sp);
+		sp.parentX = s.x;
+        sp.parentY = s.y;
         
         if (fringe.content.includes(sp)) {
             fringe.remove(sp);
@@ -524,17 +543,55 @@ function updateVertex(s, sp) {
     }
 }
 
-function getNeighbors(x, y) {
-    return [
-        { 'x': x - 1, 'y': y + 1, 'g': null },
-        { 'x': x - 1, 'y': y - 1, 'g': null },
-        { 'x': x - 1, 'y': y, 'g': null },
-        { 'x': x + 1, 'y': y + 1, 'g': null },
-        { 'x': x + 1, 'y': y - 1, 'g': null },
-        { 'x': x + 1, 'y': y, 'g': null },
-        { 'x': x, 'y': y - 1, 'g': null },
-        { 'x': x, 'y': y + 1, 'g': null }
-    ];
+function getNeighbors(s) {
+    let x = s.x;
+    let y = s.y;
+    let neighbors = [];
+
+        console.log(s);
+        console.log(x + 1);
+
+	// NSEW
+	if (grid[x - 1] && grid[x - 1][y]) {
+		neighbors.push(grid[x - 1][y]);
+	}
+	if (grid[x + 1] && grid[x + 1][y]) {
+		neighbors.push(grid[x + 1][y]);
+	}
+	if (grid[x] && grid[x][y - 1]) {
+		neighbors.push(grid[x][y - 1]);
+	}
+	if (grid[x] && grid[x][y + 1]) {
+		neighbors.push(grid[x][y + 1]);
+	}
+
+	// Diagonals
+	if (grid[x - 1] && grid[x - 1][y - 1]) {
+		neighbors.push(grid[x - 1][y - 1]);
+	}
+	if (grid[x + 1] && grid[x + 1][y - 1]) {
+		neighbors.push(grid[x + 1][y - 1]);
+	}
+	if (grid[x - 1] && grid[x - 1][y + 1]) {
+		neighbors.push(grid[x - 1][y + 1]);
+	}
+	if (grid[x + 1] && grid[x + 1][y + 1]) {
+		neighbors.push(grid[x + 1][y + 1]);
+	}
+    return neighbors;
+}
+
+function fillPath() {
+    let start = grid[startCoord.x][startCoord.y];
+    let x = grid[goalCoord.x][goalCoord.y].parentX;
+    let y = grid[goalCoord.x][goalCoord.y].parentY;
+
+    while (x !== start.x && y !== start.y) {
+		let id = '#' + x + '-' + y;
+		$(id).css('background-color', 'chartreuse');
+        x = grid[x][y].parentX;
+        x = grid[x][y].parentY;
+    }
 }
 
 function getCost(s, sp) {

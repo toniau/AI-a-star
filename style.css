@@ -3,7 +3,6 @@ body {
     width: 100%;
     padding: 5px;
     padding-right: 15px;
-    overflow-x: hidden;
 }
 
 table, tr, td {
@@ -12,8 +11,8 @@ table, tr, td {
 }
 
 td {
-    width: 8px;
-    height: 6px;
+    width: 5px;
+    height: 3px;
 }
 
 #fileUpload {
