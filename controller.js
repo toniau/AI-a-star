@@ -9,6 +9,7 @@ const TILE_START = "s";
 const TILE_GOAL = "g";
 
 let startCoord, goalCoord;
+let centers = [];
 
 function tile(type, x, y){
     this.type = type;
@@ -77,7 +78,6 @@ function getProbability() {
     return probability[idx];
 }
 
-let centers = [];
 
 /* Select Random Coordinates*/
 function getRandomCoords(){
