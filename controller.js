@@ -5,7 +5,10 @@ const TILE_EMPTY = "1";
 const TILE_HARD = "2";
 const TILE_RIVER = "a";
 const TILE_HARD_RIVER = "b";
+const TILE_START = "s";
+const TILE_GOAL = "g";
 
+let startCoord, goalCoord;
 
 function tile(type, x, y){
     this.type = type;
@@ -25,6 +28,12 @@ function tile(type, x, y){
             break;
         case TILE_BLOCKED:
             $(id).css('background-color', '#333');
+            break;
+        case TILE_START:
+            $(id).css('background-color', 'red');
+            break;
+        case TILE_GOAL:
+            $(id).css('background-color', 'yellow');
             break;
     }
 
@@ -288,6 +297,32 @@ function generateBlocks() {
     }
 }
 
+function setStartGoal() {
+    let startX = 21;
+    let startY = 21;
+    while (startX > 20 && startX <= 140) {
+        startX = Math.floor(Math.random() * 160);
+    }
+    while (startY > 20 && startY <= 100) {
+        startY = Math.floor(Math.random() * 120);
+    }
+    arr[startX][startY] = new tile(TILE_START, startX, startY);
+
+    startCoord = {startX, startY};
+    
+    let endX = 21;
+    let endY = 21;
+    while (endX > 20 && endX <= 140) {
+        endX = Math.floor(Math.random() * 160);
+    }
+    while (endY > 20 && endY <= 100) {
+        endY = Math.floor(Math.random() * 120);
+    }
+    arr[endX][endY] = new tile(TILE_GOAL, endX, endY);
+
+    goalCoord = {endX, endY};
+}
+
 $(document).ready(function() {
     createGrid(160, 120);
     
@@ -308,4 +343,5 @@ $(document).ready(function() {
     }
 
     generateBlocks();
+    setStartGoal();
 });
