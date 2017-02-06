@@ -35,10 +35,10 @@ function tile(type, x, y){
             $(id).css('background-color', 'red');
             break;
         case TILE_GOAL:
-            $(id).css('background-color', 'chartreuse');
+            $(id).css('background-color', 'cyan');
             break;
         case TILE_PATH:
-            $(id).css('background-color', 'cyan');
+            $(id).css('background-color', 'chartreuse');
             break;
     }
 
@@ -439,7 +439,6 @@ $(document).ready(function() {
     });
     
     astar();
-    fillPath();
 });
 
 /*
@@ -639,9 +638,6 @@ function getNeighbors(s) {
     let y = s.y;
     let neighbors = [];
 
-        console.log(s);
-        console.log(x + 1);
-
 	// NSEW
 	if (grid[x - 1] && grid[x - 1][y]) {
 		neighbors.push(grid[x - 1][y]);
@@ -673,15 +669,18 @@ function getNeighbors(s) {
 }
 
 function fillPath() {
-    let start = grid[startCoord.x][startCoord.y];
-    let x = grid[goalCoord.x][goalCoord.y].parentX;
-    let y = grid[goalCoord.x][goalCoord.y].parentY;
+    console.log(startCoord);
+    console.log(goalCoord);
+    let x = goalCoord.x;
+    let y = goalCoord.y;
+    console.log(grid[0]);
 
-    while (x !== start.x && y !== start.y) {
+    while (x !== startCoord.x && y !== startCoord.y) {
 		let id = '#' + x + '-' + y;
+        console.log(id);
 		$(id).css('background-color', 'chartreuse');
         x = grid[x][y].parentX;
-        x = grid[x][y].parentY;
+        y = grid[x][y].parentY;
     }
 }
 
