@@ -347,6 +347,97 @@ $(document).ready(function() {
 
     generateBlocks();
     setStartGoal();
+    
+        /* Import File Reader */
+    document.getElementById('file').onchange = function(){
+
+        var file = this.files[0];
+        var newCenters = [];
+
+        var reader = new FileReader();
+        reader.onload = function(progressEvent){
+        var lines = this.result.split('\n');
+        for(var line = 0; line < lines.length; line++){
+            // Start Coords
+            if(line===0){
+                var obj = JSON.parse(lines[0]);
+                startCoord.x = obj.x;
+                startCoord.y = obj.y;
+                console.log("startCoord: (" + startCoord.x + ", " + startCoord.y + ")");
+            }
+            // Goal Coords
+            else if(line===1){
+                var obj = JSON.parse(lines[1]);
+                goalCoord.x = obj.x;
+                goalCoord.y = obj.y;
+                console.log("goalCoord: (" + goalCoord.x + ", " + goalCoord.y + ")");
+            }
+            // Center Coords
+            else if(line>1 && line<10){
+                var obj = JSON.parse(lines[line]);
+                newCenters.push(obj);
+            }
+            else {
+                // Fill in map
+                let row = line-11;
+                let str = lines[line];
+                let charArray = str.split("");
+                console.log("charArray: " + charArray);
+                for(var k=0; k < 160; k++){
+                    //console.log("String at line " + line + ": " + str);
+                    arr[k][row] = new tile(charArray[k], k, row);
+                }
+            }
+        }
+            
+        // Set new center coords
+        for(var i=0; i < 8; i++){
+            centers[i] = newCenters[i];
+            console.log("centers["+i+"]"+centers[i]);
+        }
+    };
+        
+        reader.readAsText(file);
+    };
+    
+    
+    $("#clear").hide();
+    
+    /* Export File */
+    $("#push").on('click', function(){
+        
+        $("#push").hide();
+        $("div").append("<textarea rows='10' cols='100'></textarea>");
+        
+        $("textarea").append(JSON.stringify(startCoord) + "\n");
+        $("textarea").append(JSON.stringify(goalCoord) + "\n");
+        
+        for(var i=0; i < 8; i++){
+            var tmp = centers[i];
+            tmp = JSON.stringify(tmp);
+            $("textarea").append(tmp + "\n");
+        }
+        
+        for(var j=0; j < 120; j++){
+            var rowString = "";
+            for(var k=0; k < 160; k++){
+                var tmp = arr[k][j].type;
+                //console.log("arr[k][j].type = " + tmp);
+                rowString += tmp;
+            } 
+            //console.log("iteration: " + j + "rowString: " + rowString);
+            $("textarea").append(rowString + "\n");
+        }
+        
+        $("#clear").show(); 
+    });
+    
+    $("#clear").on('click', function(){
+        $("#clear").hide();
+        $("textarea").remove();
+        $("#push").show();
+    });
+    
     astar();
     fillPath();
 });
