@@ -46,7 +46,7 @@ function tile(type, x, y){
 
 /* Create Corresponding Array of Map */
 let arr = new Array(120);
-for(j=0; j < 160; j++){
+for(j=0; j < arr.length; j++){
     arr[j] = new Array(160);
 }
 
@@ -63,7 +63,7 @@ function createGrid(columns, rows) {
             cell.attr('data-row', i);
             cell.attr('data-column', j);
             row.append(cell);
-            arr[j][i] = new tile(TILE_EMPTY, j, i);
+            arr[i][j] = new tile(TILE_EMPTY, j, i);
         }
     }
 
@@ -126,7 +126,7 @@ function getRandomCoords(){
             for(let k=upper; k <= lower; k++){
                 let tmp = getProbability();
                 if(tmp===1){
-                    arr[j][k] = new tile(TILE_HARD, j, k);
+                    arr[k][j] = new tile(TILE_HARD, j, k);
                 } 
             }
             
@@ -241,13 +241,13 @@ function generateHighway(){
             }
             
 
-            if(arr[x][y].type === TILE_HARD){
-                arr[x][y] = new tile(TILE_HARD_RIVER, x, y)
-            } else if (arr[x][y].type === TILE_RIVER || arr[x][y].type === TILE_HARD_RIVER) {
+            if(arr[y][x].type === TILE_HARD){
+                arr[y][x] = new tile(TILE_HARD_RIVER, x, y)
+            } else if (arr[y][x].type === TILE_RIVER || arr[y][x].type === TILE_HARD_RIVER) {
                 backtrackRiver(riverCells, riverLength); 
                 return false; // Failed, hit another river
             } else {
-                arr[x][y] = new tile(TILE_RIVER, x, y)
+                arr[y][x] = new tile(TILE_RIVER, x, y)
             }
 
             switch(direction){
@@ -279,10 +279,10 @@ function backtrackRiver(riverCells, riverLength, direction) {
 
         // console.log(riverCells[i]);
 
-        if (arr[x][y].type === TILE_HARD_RIVER) {
-            arr[x][y] = new tile(TILE_HARD, x, y);
+        if (arr[y][x].type === TILE_HARD_RIVER) {
+            arr[y][x] = new tile(TILE_HARD, x, y);
         } else {
-            arr[x][y] = new tile(TILE_EMPTY, x, y);
+            arr[y][x] = new tile(TILE_EMPTY, x, y);
         }
     }
 
@@ -293,10 +293,10 @@ function generateBlocks() {
         let x = Math.floor((Math.random() * 160));
         let y = Math.floor((Math.random() * 120));
 
-        if (arr[x][y].type !== TILE_EMPTY) {
+        if (arr[y][x].type !== TILE_EMPTY) {
             i--;
         } else {
-            arr[x][y] = new tile(TILE_BLOCKED, x, y);
+            arr[y][x] = new tile(TILE_BLOCKED, x, y);
         }
     }
 }
@@ -310,7 +310,7 @@ function setStartGoal() {
     while (startY > 20 && startY <= 100) {
         startY = Math.floor(Math.random() * 120);
     }
-    arr[startX][startY] = new tile(TILE_START, startX, startY);
+    arr[startY][startX] = new tile(TILE_START, startX, startY);
 
     startCoord = {'x': startX, 'y': startY};
     
@@ -322,7 +322,7 @@ function setStartGoal() {
     while (endY > 20 && endY <= 100) {
         endY = Math.floor(Math.random() * 120);
     }
-    arr[endX][endY] = new tile(TILE_GOAL, endX, endY);
+    arr[endY][endX] = new tile(TILE_GOAL, endX, endY);
 
     goalCoord = {'x':endX, 'y': endY};
 }
@@ -573,11 +573,14 @@ for (let row = 0; row < 120; row++) {
             'x': col,
             'y': row,
             'g': Number.MAX_SAFE_INTEGER,
-			'parentX': null,
-            'parentY': null
+            'parent': {
+                'x': null,
+                'y': null
+            }
         });
     }
 }
+let closed = [];
 
 // A-Star
 function astar() {
@@ -585,9 +588,14 @@ function astar() {
         'x' : startCoord.x, 
         'y' : startCoord.y,
         'g' : 0,
-        'parentX': startCoord.x,
-        'parentY': startCoord.y,
+        'parent' : {
+            'x': startCoord.x,
+            'y': startCoord.y
+        }
     }
+    grid[start.y][start.x].parent = start.parent;
+    grid[start.y][start.x].g = 0;
+
     let goal = {
         'x' : goalCoord.x,
         'y' : goalCoord.y
@@ -595,41 +603,41 @@ function astar() {
 
     fringe.push(start);
 
-    let closed = [];
-    console.log(start);
-    console.log(goal);
-    console.log(fringe.size());
+    let expanded = 0;
 
     while(fringe.size() > 0) {
-        console.log('hi');
+        expanded++;
         // console.log(fringe.size());
         let s = fringe.pop();
-        if (s.x == goal.x && s.y == goal.y) {
+        if (s.x === goal.x && s.y === goal.y) {
             console.log("Path found!");
             return;
         }
         closed.push(s);
 
         let succ = getNeighbors(s);
-        succ.forEach(function(sp) {
-            if (closed.indexOf(sp) < 0) {
+        for (let i = 0; i < succ.length; i++) {
+            let sp = succ[i];
+            if (arr[sp.y][sp.x].type === TILE_BLOCKED) {
+                closed.push(sp);
+            } else if (closed.indexOf(sp) < 0) {
                 if(fringe.content.indexOf(sp) < 0) {
-					sp.g = Number.MAX_SAFE_INTEGER;
-					sp.parentX = null;
-                    sp.parentY = null;
+					          sp.g = Number.MAX_SAFE_INTEGER;
+                    sp.parent.x = null;
+                    sp.parent.y = null;
                 }
                 updateVertex(s, sp);
             }
-        });
+        }
     }
     console.log("No path found.");
 }
 
 function updateVertex(s, sp) {
-    if (s.g + getCost(s, sp) < sp.g) {
+        if (s.g + getCost(s, sp) < sp.g) {
         sp.g = s.g + getCost(s, sp);
-		sp.parentX = s.x;
-        sp.parentY = s.y;
+		    sp.parent.x = s.x;
+        sp.parent.y = s.y;
         
         if (fringe.content.indexOf(sp) < 0) {
             fringe.remove(sp);
@@ -674,20 +682,70 @@ function getNeighbors(s) {
 }
 
 function fillPath() {
-    let x = grid[goalCoord.y][goalCoord.x].parentX;
-    let y = grid[goalCoord.y][goalCoord.x].parentY;
+    let x = grid[goalCoord.y][goalCoord.x].parent.x;
+    let y = grid[goalCoord.y][goalCoord.x].parent.y;
 
-    while (x != startCoord.x && y != startCoord.y) {
-		var id = '#' + x + '-' + y;
-        console.log(id);
-		$(id).css('background-color', 'chartreuse');
-        x = grid[y][x].parentX;
-        y = grid[y][x].parentY;
-    }
-    console.log('hi' + id);
-    $(id).css('background-color', 'brown');
+    var id = '#' + x + '-' + y;
+    $(id).css('background-color', 'chartreuse');
+
+    do {
+        let parent = grid[y][x].parent;
+        x = parent.x;
+        y = parent.y;
+		    id = '#' + x + '-' + y;
+		    $(id).css('background-color', 'chartreuse');
+    } while (!(x === startCoord.x && y === startCoord.y))
+    $(id).css('background-color', 'red');
 }
 
 function getCost(s, sp) {
-    return 1;
+    let sType = arr[s.y][s.x].type;
+    let spType = arr[sp.y][sp.x].type;
+    let cost = 0;
+    if (s.x == sp.x || s.y == sp.y) { // Orthogonal
+        if (sType === TILE_EMPTY) {
+            if (spType === TILE_HARD) {
+                cost = 1.5;
+            } else {
+                cost = 1.0;
+            }
+        } else if (sType === TILE_HARD) {
+            if (spType === TILE_HARD) {
+                cost = 2.0;
+            } else {
+                cost = 1.5;
+            }
+        } else if (sType === TILE_RIVER) {
+            if (spType === TILE_RIVER) {
+                cost = 0.25;
+            } else if (spType === TILE_HARD_RIVER) {
+                cost = 0.375;
+            } else {
+                cost = 1.0;
+            }
+        } else if (sType === TILE_HARD_RIVER) {
+            if (spType === TILE_RIVER) {
+                cost = 0.375;
+            } else if (spType === TILE_HARD_RIVER) {
+                cost = 0.5;
+            } else {
+                cost = 2;
+            }
+        }
+    } else { // Diagonal
+        if (sType === TILE_EMPTY) {
+            if (spType === TILE_HARD) {
+                cost = (Math.sqrt(2) + Math.sqrt(8)) / 2.0;
+            } else {
+                cost = Math.sqrt(2);
+            }
+        } else if (sType === TILE_HARD) {
+            if (spType === TILE_HARD) {
+                cost = Math.sqrt(8);
+            } else {
+                cost = (Math.sqrt(2) + Math.sqrt(8)) / 2.0;
+            }
+        }
+    }
+    return cost;
 }
