@@ -17,8 +17,18 @@
 <body>
     
     <h1>Intro to AI - A* Algorithm with Random Map Generation</h1>
+    <p>Toni Au, Jungsoo Park</p>
     
-    <p>Upload File: <input type="file" id="file" name="file"></p>
+    <h4>Choose Algorithm:</h4>
+    <form class="tab">
+        <input type="radio" name="algorithm" id="USC" value="UCS" checked>Uniform Cost Search<br>
+        <input type="radio" name="algorithm" id="astar" value="astar">A*<br>
+        <input type="radio" name="algorithm" id="weight-astar" value="weight-astar">Weighted A*<br><br>
+        <button id="algo-btn">Search!</button>
+    </form>
+    
+    <h4>Upload Map Text File</h4>
+    <p class="tab"><input type="file" id="file" name="file"></p>
     
     <table class="table"></table>
     

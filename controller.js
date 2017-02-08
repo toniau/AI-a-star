@@ -334,6 +334,7 @@ $(document).ready(function() {
         console.log("Id: " + $(this).attr('id'));
         console.log("Row: " + $(this).attr('data-row'));
         console.log("Column: " + $(this).attr('data-column'));
+        console.log("")
     });
     
     getRandomCoords();
@@ -347,11 +348,23 @@ $(document).ready(function() {
 
     generateBlocks();
     setStartGoal();
-    
-    astar();
+    UCS();
     fillPath();
     
-        /* Import File Reader */
+    /* Choose Algorithm to Run */
+    document.getElementById('algo-btn').addEventListener('click', function(){
+        if(document.getElementById('USC').checked){
+            UCS();
+        }
+        else if(document.getElementById('astar').checked){
+            astar();
+        } else{
+            weightedAStar();
+        }
+        fillPath();
+    });
+    
+    /* Import File Reader */
     document.getElementById('file').onchange = function(){
 
         var file = this.files[0];
@@ -403,7 +416,6 @@ $(document).ready(function() {
         reader.readAsText(file);
     };
     
-    
     $("#clear").hide();
     
     /* Export File */
@@ -411,7 +423,6 @@ $(document).ready(function() {
         
         $("#push").hide();
         $("div").append("<textarea rows='10' cols='100'></textarea>");
-        
         $("textarea").append(JSON.stringify(startCoord) + "\n");
         $("textarea").append(JSON.stringify(goalCoord) + "\n");
         
@@ -424,7 +435,7 @@ $(document).ready(function() {
         for(var j=0; j < 120; j++){
             var rowString = "";
             for(var k=0; k < 160; k++){
-                var tmp = arr[k][j].type;
+                var tmp = arr[j][k].type;
                 //console.log("arr[k][j].type = " + tmp);
                 rowString += tmp;
             } 
@@ -562,7 +573,6 @@ BinaryHeap.prototype = {
  * END BINARY HEAP
  */
 
-
 let fringe = new BinaryHeap(function(cell) { return cell.g; });
 
 let grid = [];
@@ -582,8 +592,30 @@ for (let row = 0; row < 120; row++) {
 }
 let closed = [];
 
-// A-Star
-function astar() {
+function refresh(){
+    let fringe = new BinaryHeap(function(cell) { return cell.g; });
+
+    let grid = [];
+    for (let row = 0; row < 120; row++) {
+        grid.push([]);
+        for (let col = 0; col < 160; col++) {
+            grid[row].push({
+                'x': col,
+                'y': row,
+                'g': Number.MAX_SAFE_INTEGER,
+                'parent': {
+                    'x': null,
+                    'y': null
+                }
+            });
+        }
+    }
+    let closed = [];
+}
+
+// Uniform Cost Search
+function UCS() {
+    refresh();
     let start = {
         'x' : startCoord.x, 
         'y' : startCoord.y,
@@ -622,7 +654,7 @@ function astar() {
                 closed.push(sp);
             } else if (closed.indexOf(sp) < 0) {
                 if(fringe.content.indexOf(sp) < 0) {
-					          sp.g = Number.MAX_SAFE_INTEGER;
+				    sp.g = Number.MAX_SAFE_INTEGER;
                     sp.parent.x = null;
                     sp.parent.y = null;
                 }
@@ -633,10 +665,97 @@ function astar() {
     console.log("No path found.");
 }
 
+// A-Star
+function astar(){
+    
+    let fringe = new BinaryHeap(function(cell) { return cell.f; });
+
+    let grid = [];
+    for (let row = 0; row < 120; row++) {
+        grid.push([]);
+        for (let col = 0; col < 160; col++) {
+            grid[row].push({
+                'x': col,
+                'y': row,
+                'f': 0,
+                'g': Number.MAX_SAFE_INTEGER,
+                'parent': {
+                    'x': null,
+                    'y': null
+                }
+            });
+        }
+    }
+    let closed = [];
+    
+    let start = {
+        'x' : startCoord.x, 
+        'y' : startCoord.y,
+        'f' : 0,
+        'g' : 0,
+        'parent' : {
+            'x': startCoord.x,
+            'y': startCoord.y
+        }
+    }
+    
+    
+    grid[start.y][start.x].parent = start.parent;
+    grid[start.y][start.x].f = 0;
+    grid[start.y][start.x].g = 0;
+
+    let goal = {
+        'x' : goalCoord.x,
+        'y' : goalCoord.y
+    }
+
+    let h = euclideanDistance(start.x, start.y);
+    start.f = (start.g) + h;
+    
+    fringe.push(start);
+
+    let expanded = 0;
+
+    while(fringe.size() > 0) {
+        expanded++;
+        // console.log(fringe.size());
+        let s = fringe.pop();
+        s.f = s.g + euclideanDistance(s.x, s.y);
+        if (s.x === goal.x && s.y === goal.y) {
+            console.log("Path found!");
+            return;
+        }
+        closed.push(s);
+
+        let succ = getNeighbors(s);
+        for (let i = 0; i < succ.length; i++) {
+            let sp = succ[i];
+            if (arr[sp.y][sp.x].type === TILE_BLOCKED) {
+                closed.push(sp);
+            } else if (closed.indexOf(sp) < 0) {
+                if(fringe.content.indexOf(sp) < 0) {
+				    sp.g = Number.MAX_SAFE_INTEGER;
+                    sp.parent.x = null;
+                    sp.parent.y = null;
+                }
+                updateVertex(s, sp);
+            }
+        }
+    }
+    console.log("No path found.");
+    
+}
+
+function euclideanDistance(p1, p2){
+    var d1 = getCost(p1, goal.x),
+        d2 = p2 - goal.y;
+    var estimate = Math.sqrt(d1*d1 + d2*d2);
+}
+
 function updateVertex(s, sp) {
         if (s.g + getCost(s, sp) < sp.g) {
         sp.g = s.g + getCost(s, sp);
-		    sp.parent.x = s.x;
+        sp.parent.x = s.x;
         sp.parent.y = s.y;
         
         if (fringe.content.indexOf(sp) < 0) {
