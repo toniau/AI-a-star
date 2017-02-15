@@ -327,94 +327,112 @@ function setStartGoal() {
     goalCoord = {'x':endX, 'y': endY};
 }
 
+/* Import File Reader */
+function importMap(){
+
+    var file = this.files[0];
+    var newCenters = [];
+
+    var reader = new FileReader();
+    reader.onload = function(progressEvent){
+    var lines = this.result.split('\n');
+    for(var line = 0; line < lines.length; line++){
+        // Start Coords
+        if(line===0){
+            var obj = JSON.parse(lines[0]);
+            startCoord.x = obj.x;
+            startCoord.y = obj.y;
+            console.log("startCoord: (" + startCoord.x + ", " + startCoord.y + ")");
+        }
+        // Goal Coords
+        else if(line===1){
+            var obj = JSON.parse(lines[1]);
+            goalCoord.x = obj.x;
+            goalCoord.y = obj.y;
+            console.log("goalCoord: (" + goalCoord.x + ", " + goalCoord.y + ")");
+        }
+        // Center Coords
+        else if(line>1 && line<10){
+            var obj = JSON.parse(lines[line]);
+            newCenters.push(obj);
+        }
+        else {
+            // Fill in map
+            let row = line-11;
+            let str = lines[line];
+            let charArray = str.split("");
+            //console.log("charArray: " + charArray);
+            for(var k=0; k < 160; k++){
+                //console.log("String at line " + line + ": " + str);
+                arr[k][row] = new tile(charArray[k], k, row);
+            }
+        }
+    }
+
+    // Set new center coords
+    for(var i=0; i < 8; i++){
+        centers[i] = newCenters[i];
+        console.log("centers["+i+"]"+centers[i]);
+    }
+
+    }
+
+    reader.readAsText(file);
+}
+
 $(document).ready(function() {
+    
     createGrid(160, 120);
+    
+    document.getElementById('mapGen').addEventListener('click', function(){
+        
+        if(!$('#grid tr').length === 0){
+            $('#grid').empty();
+            console.log("Emptied table!");
+        }
+
+        getRandomCoords();
+
+        // Four rivers
+        for (let i = 0; i < 4; i++) {
+            if (!generateHighway()) {
+                i--;
+            }
+        }
+        generateBlocks();
+        setStartGoal();
+        // randomly select search algorithm here
+        UCS();
+        fillPath();
+    });
     
     $('.table').on('click', 'td', function () {
         console.log("Id: " + $(this).attr('id'));
         console.log("Row: " + $(this).attr('data-row'));
         console.log("Column: " + $(this).attr('data-column'));
-        console.log("")
+        console.log("f: " + grid[$(this).attr('data-row')][$(this).attr('data-column')].f);
+        console.log("g: " + grid[$(this).attr('data-row')][$(this).attr('data-column')].g);
     });
-    
-    getRandomCoords();
-
-    // Four rivers
-    for (let i = 0; i < 4; i++) {
-        if (!generateHighway()) {
-            i--;
-        }
-    }
-
-    generateBlocks();
-    setStartGoal();
-    UCS();
-    fillPath();
     
     /* Choose Algorithm to Run */
     document.getElementById('algo-btn').addEventListener('click', function(){
-        if(document.getElementById('USC').checked){
-            UCS();
-        }
-        else if(document.getElementById('astar').checked){
-            astar();
-        } else{
-            weightedAStar();
-        }
-        fillPath();
-    });
-    
-    /* Import File Reader */
-    document.getElementById('file').onchange = function(){
-
-        var file = this.files[0];
-        var newCenters = [];
-
-        var reader = new FileReader();
-        reader.onload = function(progressEvent){
-        var lines = this.result.split('\n');
-        for(var line = 0; line < lines.length; line++){
-            // Start Coords
-            if(line===0){
-                var obj = JSON.parse(lines[0]);
-                startCoord.x = obj.x;
-                startCoord.y = obj.y;
-                console.log("startCoord: (" + startCoord.x + ", " + startCoord.y + ")");
-            }
-            // Goal Coords
-            else if(line===1){
-                var obj = JSON.parse(lines[1]);
-                goalCoord.x = obj.x;
-                goalCoord.y = obj.y;
-                console.log("goalCoord: (" + goalCoord.x + ", " + goalCoord.y + ")");
-            }
-            // Center Coords
-            else if(line>1 && line<10){
-                var obj = JSON.parse(lines[line]);
-                newCenters.push(obj);
-            }
-            else {
-                // Fill in map
-                let row = line-11;
-                let str = lines[line];
-                let charArray = str.split("");
-                console.log("charArray: " + charArray);
-                for(var k=0; k < 160; k++){
-                    //console.log("String at line " + line + ": " + str);
-                    arr[k][row] = new tile(charArray[k], k, row);
-                }
-            }
-        }
-            
-        // Set new center coords
-        for(var i=0; i < 8; i++){
-            centers[i] = newCenters[i];
-            console.log("centers["+i+"]"+centers[i]);
-        }
-    };
         
-        reader.readAsText(file);
-    };
+        createGrid(160, 120);
+        
+        if(document.getElementById('file').value != ""){
+            importMap();
+            
+            if(document.getElementById('USC').checked){
+                UCS();
+            }
+            else if(document.getElementById('astar').checked){
+                astar();
+            } else{
+                weightedAStar();
+            }
+            fillPath();
+        }
+    });
     
     $("#clear").hide();
     
@@ -452,6 +470,7 @@ $(document).ready(function() {
         $("#push").show();
     });
 });
+
 
 /*
  * BEGIN BINARY HEAP
