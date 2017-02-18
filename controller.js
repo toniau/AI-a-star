@@ -713,7 +713,7 @@ function astar(){
         'y' : goalCoord.y
     }
 
-    let h = euclideanDistance(start.x, start.y);
+    let h = euclideanDistance(start.x, start.y, goal.x, goal.y);
     start.f = (start.g) + h;
     
     fringe.push(start);
@@ -724,7 +724,7 @@ function astar(){
         expanded++;
         // console.log(fringe.size());
         let s = fringe.pop();
-        s.f = s.g + euclideanDistance(s.x, s.y);
+        s.f = s.g + euclideanDistance(s.x, s.y, goal.x, goal.y);
         if (s.x === goal.x && s.y === goal.y) {
             console.log("Path found!");
             return;
@@ -755,10 +755,12 @@ function weightedAStar(){
     return;
 }
 
-function euclideanDistance(p1, p2){
-    var d1 = getCost(p1, goal.x),
-        d2 = p2 - goal.y;
+function euclideanDistance(s1, s2, g1, g2){
+    var d1 = s1 - g1,
+        d2 = s2 - g2;
     var estimate = Math.sqrt(d1*d1 + d2*d2);
+    //console.log("Estimate: " + estimate);
+    return estimate;
 }
 
 function updateVertex(s, sp) {
