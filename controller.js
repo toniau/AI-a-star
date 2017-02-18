@@ -692,6 +692,7 @@ function astar(){
     }
     closed = [];
     
+    // f: estimate of distance from start vertex via current vertex s to the goal
     let start = {
         'x' : startCoord.x, 
         'y' : startCoord.y,
