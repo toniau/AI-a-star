@@ -19,26 +19,25 @@
     <h1>Intro to AI - A* Algorithm with Random Map Generation</h1>
     <p>Toni Au, Jungsoo Park</p>
     
+    <!--<h4>Generate Random <button id="mapGen">Generate Random Map</button></h4>-->
+    
+
+    <h4>Upload Map Text File </h4>
+    <input type="file" id="file" name="file" class="tab">
     <h4>Choose Algorithm:</h4>
-    <form class="tab">
-        <input type="radio" name="algorithm" id="USC" value="UCS" checked>Uniform Cost Search<br>
-        <input type="radio" name="algorithm" id="astar" value="astar">A*<br>
-        <input type="radio" name="algorithm" id="weight-astar" value="weight-astar">Weighted A*<br><br>
-        <button id="algo-btn">Search!</button>
-    </form>
+    <input class="tab" type="radio" name="algorithm" id="USC" value="UCS" checked>Uniform Cost Search<br>
+    <input class="tab" type="radio" name="algorithm" id="astar" value="astar">A*<br>
+    <input class="tab" type="radio" name="algorithm" id="weight-astar" value="weight-astar">Weighted A*<br><br>
+    <button id="search-btn">Search!</button>
+
     
-    <h4>Upload Map Text File</h4>
-    <p class="tab"><input type="file" id="file" name="file"></p>
-    
-    <table class="table"></table>
+    <table id="grid" class="table"></table>
     
     <div id="output">
-        <button id="push">Get Map Information</button>
-        <button id="clear">Clear Map Information</button>
+        <button id="getMapInfo">Get Map Information</button>
+        <button id="clearMapInfo">Clear Map Information</button>
         <br><br>
     </div>
-    
-    <h1>Pls let this work</h1>
     
 </body>
     

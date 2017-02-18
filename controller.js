@@ -327,84 +327,22 @@ function setStartGoal() {
     goalCoord = {'x':endX, 'y': endY};
 }
 
-/* Import File Reader */
-function importMap(){
-
-    var file = this.files[0];
-    var newCenters = [];
-
-    var reader = new FileReader();
-    reader.onload = function(progressEvent){
-    var lines = this.result.split('\n');
-    for(var line = 0; line < lines.length; line++){
-        // Start Coords
-        if(line===0){
-            var obj = JSON.parse(lines[0]);
-            startCoord.x = obj.x;
-            startCoord.y = obj.y;
-            console.log("startCoord: (" + startCoord.x + ", " + startCoord.y + ")");
-        }
-        // Goal Coords
-        else if(line===1){
-            var obj = JSON.parse(lines[1]);
-            goalCoord.x = obj.x;
-            goalCoord.y = obj.y;
-            console.log("goalCoord: (" + goalCoord.x + ", " + goalCoord.y + ")");
-        }
-        // Center Coords
-        else if(line>1 && line<10){
-            var obj = JSON.parse(lines[line]);
-            newCenters.push(obj);
-        }
-        else {
-            // Fill in map
-            let row = line-11;
-            let str = lines[line];
-            let charArray = str.split("");
-            //console.log("charArray: " + charArray);
-            for(var k=0; k < 160; k++){
-                //console.log("String at line " + line + ": " + str);
-                arr[k][row] = new tile(charArray[k], k, row);
-            }
-        }
-    }
-
-    // Set new center coords
-    for(var i=0; i < 8; i++){
-        centers[i] = newCenters[i];
-        console.log("centers["+i+"]"+centers[i]);
-    }
-
-    }
-
-    reader.readAsText(file);
-}
-
 $(document).ready(function() {
     
     createGrid(160, 120);
-    
-    document.getElementById('mapGen').addEventListener('click', function(){
-        
-        if(!$('#grid tr').length === 0){
-            $('#grid').empty();
-            console.log("Emptied table!");
-        }
+    getRandomCoords();
 
-        getRandomCoords();
-
-        // Four rivers
-        for (let i = 0; i < 4; i++) {
-            if (!generateHighway()) {
-                i--;
-            }
+    // Four rivers
+    for (let i = 0; i < 4; i++) {
+        if (!generateHighway()) {
+            i--;
         }
-        generateBlocks();
-        setStartGoal();
-        // randomly select search algorithm here
-        UCS();
-        fillPath();
-    });
+    }
+    generateBlocks();
+    setStartGoal();
+    // randomly select search algorithm here
+    UCS();
+    fillPath();
     
     $('.table').on('click', 'td', function () {
         console.log("Id: " + $(this).attr('id'));
@@ -414,32 +352,81 @@ $(document).ready(function() {
         console.log("g: " + grid[$(this).attr('data-row')][$(this).attr('data-column')].g);
     });
     
-    /* Choose Algorithm to Run */
-    document.getElementById('algo-btn').addEventListener('click', function(){
-        
-        createGrid(160, 120);
-        
-        if(document.getElementById('file').value != ""){
-            importMap();
-            
-            if(document.getElementById('USC').checked){
-                UCS();
-            }
-            else if(document.getElementById('astar').checked){
-                astar();
-            } else{
-                weightedAStar();
-            }
-            fillPath();
+    /* Import File Reader */
+    document.getElementById('file').onchange = function(){
+
+        var file = this.files[0];
+        var newCenters = [];
+        var reader = new FileReader();
+
+        reader.onload = function(event){
+            var lines = this.result.split('\n');
+            for(var line = 0; line < lines.length; line++){
+                // Start Coords
+                if(line===0){
+                    var obj = JSON.parse(lines[0]);
+                    startCoord.x = obj.x;
+                    startCoord.y = obj.y;
+                    console.log("startCoord: (" + startCoord.x + ", " + startCoord.y + ")");
+                }
+                // Goal Coords
+                else if(line===1){
+                    var obj = JSON.parse(lines[1]);
+                    goalCoord.x = obj.x;
+                    goalCoord.y = obj.y;
+                    console.log("goalCoord: (" + goalCoord.x + ", " + goalCoord.y + ")");
+                }
+                // Center Coords
+                else if(line>1 && line<10){
+                    var obj = JSON.parse(lines[line]);
+                    newCenters.push(obj);
+                }
+                else {
+                    // Fill in map
+                    let row = line-10;
+                    let str = lines[line];
+                    let charArray = str.split("");
+                    //console.log("charArray: " + charArray);
+                    for(var k=0; k < 160; k++){
+                        //console.log("String at line " + line + ": " + str);
+                        arr[row][k] = new tile(charArray[k], k, row);
+                    }
+                }
         }
+
+        // Set new center coords
+        for(var i=0; i < 8; i++){
+            centers[i] = newCenters[i];
+            //console.log("centers["+i+"]"+centers[i]);
+        }
+
+        }
+
+        reader.readAsText(file);
+    }
+    
+    /* Choose Algorithm to Run */
+    document.getElementById('search-btn').addEventListener('click', function(){
+            
+        if(document.getElementById('USC').checked){
+            UCS();
+        }
+        else if(document.getElementById('astar').checked){
+            astar();
+        } else{
+            weightedAStar();
+        }
+        
+        fillPath();
+        
     });
     
-    $("#clear").hide();
+    $("#clearMapInfo").hide();
     
     /* Export File */
-    $("#push").on('click', function(){
+    $("#getMapInfo").on('click', function(){
         
-        $("#push").hide();
+        $("#getMapInfo").hide();
         $("div").append("<textarea rows='10' cols='100'></textarea>");
         $("textarea").append(JSON.stringify(startCoord) + "\n");
         $("textarea").append(JSON.stringify(goalCoord) + "\n");
@@ -461,13 +448,13 @@ $(document).ready(function() {
             $("textarea").append(rowString + "\n");
         }
         
-        $("#clear").show(); 
+        $("#clearMapInfo").show(); 
     });
     
-    $("#clear").on('click', function(){
-        $("#clear").hide();
+    $("#clearMapInfo").on('click', function(){
+        $("#clearMapInfo").hide();
         $("textarea").remove();
-        $("#push").show();
+        $("#getMapInfo").show();
     });
 });
 
@@ -611,10 +598,12 @@ for (let row = 0; row < 120; row++) {
 }
 let closed = [];
 
-function refresh(){
-    let fringe = new BinaryHeap(function(cell) { return cell.g; });
+// Uniform Cost Search
+function UCS() {
+    
+    fringe = new BinaryHeap(function(cell) { return cell.g; });
 
-    let grid = [];
+    grid = [];
     for (let row = 0; row < 120; row++) {
         grid.push([]);
         for (let col = 0; col < 160; col++) {
@@ -629,12 +618,8 @@ function refresh(){
             });
         }
     }
-    let closed = [];
-}
-
-// Uniform Cost Search
-function UCS() {
-    refresh();
+    closed = [];
+    
     let start = {
         'x' : startCoord.x, 
         'y' : startCoord.y,
@@ -658,7 +643,7 @@ function UCS() {
 
     while(fringe.size() > 0) {
         expanded++;
-        // console.log(fringe.size());
+        //console.log(fringe.size());
         let s = fringe.pop();
         if (s.x === goal.x && s.y === goal.y) {
             console.log("Path found!");
@@ -687,9 +672,9 @@ function UCS() {
 // A-Star
 function astar(){
     
-    let fringe = new BinaryHeap(function(cell) { return cell.f; });
+    fringe = new BinaryHeap(function(cell) { return cell.f; });
 
-    let grid = [];
+    grid = [];
     for (let row = 0; row < 120; row++) {
         grid.push([]);
         for (let col = 0; col < 160; col++) {
@@ -705,7 +690,7 @@ function astar(){
             });
         }
     }
-    let closed = [];
+    closed = [];
     
     let start = {
         'x' : startCoord.x, 
@@ -763,6 +748,11 @@ function astar(){
     }
     console.log("No path found.");
     
+}
+
+// Weighted A*
+function weightedAStar(){
+    return;
 }
 
 function euclideanDistance(p1, p2){

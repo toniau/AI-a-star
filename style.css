@@ -22,7 +22,11 @@ td {
 #output {
     padding-top: 15px;
 }
-
+    
 .tab {
     padding-left: 16px;
+}
+
+#search-btn {
+    margin-bottom: 15px;
 }
