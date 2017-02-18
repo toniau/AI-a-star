@@ -350,6 +350,7 @@ $(document).ready(function() {
         console.log("Column: " + $(this).attr('data-column'));
         console.log("f: " + grid[$(this).attr('data-row')][$(this).attr('data-column')].f);
         console.log("g: " + grid[$(this).attr('data-row')][$(this).attr('data-column')].g);
+        console.log("h: " + grid[$(this).attr('data-row')][$(this).attr('data-column')].h);
     });
     
     /* Import File Reader */
@@ -413,7 +414,7 @@ $(document).ready(function() {
         }
         else if(document.getElementById('astar').checked){
             astar();
-        } else{
+        } else if(document.getElementById('weight-astar').checked){
             weightedAStar();
         }
         
@@ -662,7 +663,7 @@ function UCS() {
                     sp.parent.x = null;
                     sp.parent.y = null;
                 }
-                updateVertex(s, sp);
+                updateVertex(s, sp, goal.x, goal.y);
             }
         }
     }
@@ -693,6 +694,7 @@ function astar(){
     closed = [];
     
     // f: estimate of distance from start vertex via current vertex s to the goal
+    // g: distance from start to vertex x
     let start = {
         'x' : startCoord.x, 
         'y' : startCoord.y,
@@ -743,7 +745,7 @@ function astar(){
                     sp.parent.x = null;
                     sp.parent.y = null;
                 }
-                updateVertex(s, sp);
+                updateVertex(s, sp, goal.x, goal.y);
             }
         }
     }
@@ -751,9 +753,99 @@ function astar(){
     
 }
 
+let w = 2.5;
+
 // Weighted A*
 function weightedAStar(){
-    return;
+    fringe = new BinaryHeap(function(cell) { return cell.f; });
+
+    grid = [];
+    for (let row = 0; row < 120; row++) {
+        grid.push([]);
+        for (let col = 0; col < 160; col++) {
+            grid[row].push({
+                'x': col,
+                'y': row,
+                'f': 0,
+                'g': Number.MAX_SAFE_INTEGER,
+                'parent': {
+                    'x': null,
+                    'y': null
+                }
+            });
+        }
+    }
+    closed = [];
+
+    let start = {
+        'x' : startCoord.x, 
+        'y' : startCoord.y,
+        'f' : 0,
+        'g' : 0,
+        'parent' : {
+            'x': startCoord.x,
+            'y': startCoord.y
+        }
+    }
+    
+    
+    grid[start.y][start.x].parent = start.parent;
+    grid[start.y][start.x].f = 0;
+    grid[start.y][start.x].g = 0;
+
+    let goal = {
+        'x' : goalCoord.x,
+        'y' : goalCoord.y
+    }
+
+    let h = euclideanDistance(start.x, start.y, goal.x, goal.y);
+    start.f = (start.g) + (2.5*h);
+    
+    fringe.push(start);
+
+    let expanded = 0;
+
+    while(fringe.size() > 0) {
+        expanded++;
+        // console.log(fringe.size());
+        let s = fringe.pop();
+        s.f = s.g + (2.5 * euclideanDistance(s.x, s.y, goal.x, goal.y));
+        if (s.x === goal.x && s.y === goal.y) {
+            console.log("Path found!");
+            return;
+        }
+        closed.push(s);
+
+        let succ = getNeighbors(s);
+        for (let i = 0; i < succ.length; i++) {
+            let sp = succ[i];
+            if (arr[sp.y][sp.x].type === TILE_BLOCKED) {
+                closed.push(sp);
+            } else if (closed.indexOf(sp) < 0) {
+                if(fringe.content.indexOf(sp) < 0) {
+				    sp.g = Number.MAX_SAFE_INTEGER;
+                    sp.parent.x = null;
+                    sp.parent.y = null;
+                }
+                updateVertex(s, sp, goal.x, goal.y);
+            }
+        }
+    }
+    console.log("No path found.");
+}
+
+function updateVertex(s, sp, g1, g2) {
+    if ((s.g + getCost(s, sp)) < sp.g) {
+        sp.g = s.g + getCost(s, sp);
+        sp.parent.x = s.x;
+        sp.parent.y = s.y;
+
+        if (fringe.content.indexOf(sp) < 0) {
+            fringe.remove(sp);
+        }
+        sp.f = sp.g + euclideanDistance(sp.x, sp.y, g1, g2);
+        fringe.push(sp);
+    }
 }
 
 function euclideanDistance(s1, s2, g1, g2){
@@ -762,19 +854,6 @@ function euclideanDistance(s1, s2, g1, g2){
     var estimate = Math.sqrt(d1*d1 + d2*d2);
     //console.log("Estimate: " + estimate);
     return estimate;
-}
-
-function updateVertex(s, sp) {
-        if (s.g + getCost(s, sp) < sp.g) {
-        sp.g = s.g + getCost(s, sp);
-        sp.parent.x = s.x;
-        sp.parent.y = s.y;
-        
-        if (fringe.content.indexOf(sp) < 0) {
-            fringe.remove(sp);
-        }
-        fringe.push(sp);
-    }
 }
 
 function getNeighbors(s) {
