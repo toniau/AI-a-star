@@ -24,10 +24,22 @@
 
     <h4>Upload Map Text File </h4>
     <input type="file" id="file" name="file" class="tab">
+    
     <h4>Choose Algorithm:</h4>
-    <input class="tab" type="radio" name="algorithm" id="USC" value="UCS" checked>Uniform Cost Search<br>
-    <input class="tab" type="radio" name="algorithm" id="astar" value="astar">A*<br>
-    <input class="tab" type="radio" name="algorithm" id="weight-astar" value="weight-astar">Weighted A*<br><br>
+        <input class="tab" type="radio" name="algorithm" id="USC" value="UCS" checked>Uniform Cost Search<br>
+        <input class="tab" type="radio" name="algorithm" id="astar" value="astar">A*<br>
+        <input class="tab" type="radio" name="algorithm" id="weight-astar" value="weight-astar">Weighted A*<br><br>
+    
+    <div id="heuristic">
+        <h4>Choose Heuristic:</h4>
+        
+            <input type="radio" name="heuristic" id="euclidean" value="euclidean" checked>Euclidean Distance<br>
+            <input type="radio" name="heuristic" id="manhattan" value="manhattanDistance">Manhattan Distance<br>
+            <input type="radio" name="heuristic" id="akritean" value="akritean">Akritean Distance<br>
+            <input type="radio" name="heuristic" id="chebyshev" value="chevyshev">Chebyshev Distance<br>
+            <input type="radio" name="heuristic" id="example" value="example">Example Heurisitc<br><br>
+    </div>
+    
     <button id="search-btn">Search!</button>
 
     

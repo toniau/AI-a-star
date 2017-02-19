@@ -413,9 +413,9 @@ $(document).ready(function() {
             UCS();
         }
         else if(document.getElementById('astar').checked){
-            astar();
+            astar(1);
         } else if(document.getElementById('weight-astar').checked){
-            weightedAStar();
+            astar(2);
         }
         
         fillPath();
@@ -663,15 +663,16 @@ function UCS() {
                     sp.parent.x = null;
                     sp.parent.y = null;
                 }
-                updateVertex(s, sp, goal.x, goal.y);
+                updateVertex(s, sp, goal.x, goal.y, 1);
             }
         }
     }
     console.log("No path found.");
 }
 
-// A-Star
-function astar(){
+// A-Star: w=1
+// Weighted-A*: w > 1
+function astar(w){
     
     fringe = new BinaryHeap(function(cell) { return cell.f; });
 
@@ -717,7 +718,7 @@ function astar(){
     }
 
     let h = euclideanDistance(start.x, start.y, goal.x, goal.y);
-    start.f = (start.g) + h;
+    start.f = (start.g) + (w*h);
     
     fringe.push(start);
 
@@ -727,7 +728,7 @@ function astar(){
         expanded++;
         // console.log(fringe.size());
         let s = fringe.pop();
-        s.f = s.g + euclideanDistance(s.x, s.y, goal.x, goal.y);
+        s.f = s.g + (w * euclideanDistance(s.x, s.y, goal.x, goal.y));
         if (s.x === goal.x && s.y === goal.y) {
             console.log("Path found!");
             return;
@@ -745,96 +746,14 @@ function astar(){
                     sp.parent.x = null;
                     sp.parent.y = null;
                 }
-                updateVertex(s, sp, goal.x, goal.y);
-            }
-        }
-    }
-    console.log("No path found.");
-    
-}
-
-let w = 2.5;
-
-// Weighted A*
-function weightedAStar(){
-    fringe = new BinaryHeap(function(cell) { return cell.f; });
-
-    grid = [];
-    for (let row = 0; row < 120; row++) {
-        grid.push([]);
-        for (let col = 0; col < 160; col++) {
-            grid[row].push({
-                'x': col,
-                'y': row,
-                'f': 0,
-                'g': Number.MAX_SAFE_INTEGER,
-                'parent': {
-                    'x': null,
-                    'y': null
-                }
-            });
-        }
-    }
-    closed = [];
-
-    let start = {
-        'x' : startCoord.x, 
-        'y' : startCoord.y,
-        'f' : 0,
-        'g' : 0,
-        'parent' : {
-            'x': startCoord.x,
-            'y': startCoord.y
-        }
-    }
-    
-    
-    grid[start.y][start.x].parent = start.parent;
-    grid[start.y][start.x].f = 0;
-    grid[start.y][start.x].g = 0;
-
-    let goal = {
-        'x' : goalCoord.x,
-        'y' : goalCoord.y
-    }
-
-    let h = euclideanDistance(start.x, start.y, goal.x, goal.y);
-    start.f = (start.g) + (2.5*h);
-    
-    fringe.push(start);
-
-    let expanded = 0;
-
-    while(fringe.size() > 0) {
-        expanded++;
-        // console.log(fringe.size());
-        let s = fringe.pop();
-        s.f = s.g + (2.5 * euclideanDistance(s.x, s.y, goal.x, goal.y));
-        if (s.x === goal.x && s.y === goal.y) {
-            console.log("Path found!");
-            return;
-        }
-        closed.push(s);
-
-        let succ = getNeighbors(s);
-        for (let i = 0; i < succ.length; i++) {
-            let sp = succ[i];
-            if (arr[sp.y][sp.x].type === TILE_BLOCKED) {
-                closed.push(sp);
-            } else if (closed.indexOf(sp) < 0) {
-                if(fringe.content.indexOf(sp) < 0) {
-				    sp.g = Number.MAX_SAFE_INTEGER;
-                    sp.parent.x = null;
-                    sp.parent.y = null;
-                }
-                updateVertex(s, sp, goal.x, goal.y);
+                updateVertex(s, sp, goal.x, goal.y, w);
             }
         }
     }
     console.log("No path found.");
 }
 
-function updateVertex(s, sp, g1, g2) {
+function updateVertex(s, sp, g1, g2, w) {
     if ((s.g + getCost(s, sp)) < sp.g) {
         sp.g = s.g + getCost(s, sp);
         sp.parent.x = s.x;
@@ -843,7 +762,7 @@ function updateVertex(s, sp, g1, g2) {
         if (fringe.content.indexOf(sp) < 0) {
             fringe.remove(sp);
         }
-        sp.f = sp.g + euclideanDistance(sp.x, sp.y, g1, g2);
+        sp.f = sp.g + (w * euclideanDistance(sp.x, sp.y, g1, g2));
         fringe.push(sp);
     }
 }
@@ -853,6 +772,38 @@ function euclideanDistance(s1, s2, g1, g2){
         d2 = s2 - g2;
     var estimate = Math.sqrt(d1*d1 + d2*d2);
     //console.log("Estimate: " + estimate);
+    return estimate;
+}
+
+function manhattanDistance(s1, s2, g1, g2){
+    var d1 = Math.abs(s1-g1);
+    var d2 = Math.abs(s2-g2);
+    var estimate = d1 + d2;
+    console.log("Estimate: " + estimate);
+    return estimate;
+}
+
+function akriteanDistance(s1, s2, g1, g2){
+    let d1 = euclideanDistance(s1, s2, g1, g2) * (1-2.5);
+    let d2 = manhattanDistance(s1, s2, g1, g2) * 2.5;
+    let estimate = d1 + d2;
+    console.log("Estimate: " + estimate);
+    return estimate;
+}
+
+function exampleHeuristic(s1, s2, g1, g2){
+    let absX = Math.abs(s1 - g1);
+    let absY = Math.abs(s2 - g2);
+    let estimate = Math.sqrt(2) * Math.min(absX, absY) + Math.max(absX, absY) - Math.min(absX, absY);
+    console.log("Estimate: " + estimate);
+    return estimate;
+}
+
+function chebyshevDistance(s1, s2, g1, g2){
+    let d1 = Math.abs(g1 - s1);
+    let d2 = Math.abs(g2 - s2);
+    let estimate = Math.max(d1, d2);
+    console.log("Estimate: " + estimate);
     return estimate;
 }
 
