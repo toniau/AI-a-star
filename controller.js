@@ -340,10 +340,9 @@ $(document).ready(function() {
     }
     generateBlocks();
     setStartGoal();
-    // randomly select search algorithm here
     UCS();
     fillPath();
-    
+
     $('.table').on('click', 'td', function () {
         console.log("Id: " + $(this).attr('id'));
         console.log("Row: " + $(this).attr('data-row'));
@@ -368,14 +367,14 @@ $(document).ready(function() {
                     var obj = JSON.parse(lines[0]);
                     startCoord.x = obj.x;
                     startCoord.y = obj.y;
-                    console.log("startCoord: (" + startCoord.x + ", " + startCoord.y + ")");
+                    //console.log("startCoord: (" + startCoord.x + ", " + startCoord.y + ")");
                 }
                 // Goal Coords
                 else if(line===1){
                     var obj = JSON.parse(lines[1]);
                     goalCoord.x = obj.x;
                     goalCoord.y = obj.y;
-                    console.log("goalCoord: (" + goalCoord.x + ", " + goalCoord.y + ")");
+                    //console.log("goalCoord: (" + goalCoord.x + ", " + goalCoord.y + ")");
                 }
                 // Center Coords
                 else if(line>1 && line<10){
@@ -419,7 +418,6 @@ $(document).ready(function() {
         }
         
         fillPath();
-        
     });
     
     $("#clearMapInfo").hide();
@@ -602,6 +600,8 @@ let closed = [];
 // Uniform Cost Search
 function UCS() {
     
+    var startTime = window.performance.now();
+    
     fringe = new BinaryHeap(function(cell) { return cell.g; });
 
     grid = [];
@@ -648,6 +648,10 @@ function UCS() {
         let s = fringe.pop();
         if (s.x === goal.x && s.y === goal.y) {
             console.log("Path found!");
+            var endTime = window.performance.now();
+            var time = endTime-startTime;
+            console.log("Runtime: " + time);
+            console.log("Nodes Expanded: " + expanded);
             return;
         }
         closed.push(s);
@@ -673,6 +677,8 @@ function UCS() {
 // A-Star: w=1
 // Weighted-A*: w > 1
 function astar(w){
+    
+    var startTime = window.performance.now();
     
     fringe = new BinaryHeap(function(cell) { return cell.f; });
 
@@ -731,6 +737,10 @@ function astar(w){
         s.f = s.g + (w * euclideanDistance(s.x, s.y, goal.x, goal.y));
         if (s.x === goal.x && s.y === goal.y) {
             console.log("Path found!");
+            var endTime = window.performance.now();
+            var time = endTime-startTime;
+            console.log("Runtime: " + time);
+            console.log("Nodes Expanded: " + expanded);
             return;
         }
         closed.push(s);
@@ -791,18 +801,18 @@ function akriteanDistance(s1, s2, g1, g2){
     return estimate;
 }
 
-function exampleHeuristic(s1, s2, g1, g2){
-    let absX = Math.abs(s1 - g1);
-    let absY = Math.abs(s2 - g2);
-    let estimate = Math.sqrt(2) * Math.min(absX, absY) + Math.max(absX, absY) - Math.min(absX, absY);
-    console.log("Estimate: " + estimate);
-    return estimate;
-}
-
 function chebyshevDistance(s1, s2, g1, g2){
     let d1 = Math.abs(g1 - s1);
     let d2 = Math.abs(g2 - s2);
     let estimate = Math.max(d1, d2);
+    console.log("Estimate: " + estimate);
+    return estimate;
+}
+
+function exampleHeuristic(s1, s2, g1, g2){
+    let absX = Math.abs(s1 - g1);
+    let absY = Math.abs(s2 - g2);
+    let estimate = Math.sqrt(2) * Math.min(absX, absY) + Math.max(absX, absY) - Math.min(absX, absY);
     console.log("Estimate: " + estimate);
     return estimate;
 }
@@ -845,17 +855,20 @@ function getNeighbors(s) {
 function fillPath() {
     let x = grid[goalCoord.y][goalCoord.x].parent.x;
     let y = grid[goalCoord.y][goalCoord.x].parent.y;
-
+    let pathLength = 0;
+    
     var id = '#' + x + '-' + y;
     $(id).css('background-color', 'chartreuse');
 
     do {
         let parent = grid[y][x].parent;
+        pathLength++;
         x = parent.x;
         y = parent.y;
-		    id = '#' + x + '-' + y;
-		    $(id).css('background-color', 'chartreuse');
+        id = '#' + x + '-' + y;
+        $(id).css('background-color', 'chartreuse');
     } while (!(x === startCoord.x && y === startCoord.y))
+    console.log("Path Length: " + pathLength);
     $(id).css('background-color', 'red');
 }
 
