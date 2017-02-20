@@ -414,7 +414,8 @@ $(document).ready(function() {
         else if(document.getElementById('astar').checked){
             astar(1);
         } else if(document.getElementById('weight-astar').checked){
-            astar(2);
+            var weight = document.getElementById('weight').value;
+            astar(weight);
         }
         
         fillPath();
@@ -460,6 +461,7 @@ $(document).ready(function() {
 
 /*
  * BEGIN BINARY HEAP
+ * Binary Heap from a javascript library on github
  */
 function BinaryHeap(scoreFunction){
   this.content = [];
@@ -723,7 +725,7 @@ function astar(w){
         'y' : goalCoord.y
     }
 
-    let h = akriteanDistance(start.x, start.y, goal.x, goal.y);
+    let h = manhattanDistance(start.x, start.y, goal.x, goal.y);
     start.f = (start.g) + (w*h);
     
     fringe.push(start);
@@ -734,7 +736,7 @@ function astar(w){
         expanded++;
         // console.log(fringe.size());
         let s = fringe.pop();
-        s.f = s.g + (w * akriteanDistance(s.x, s.y, goal.x, goal.y));
+        s.f = s.g + (w * manhattanDistance(s.x, s.y, goal.x, goal.y));
         if (s.x === goal.x && s.y === goal.y) {
             console.log("Path found!");
             var endTime = window.performance.now();
@@ -823,7 +825,7 @@ function updateVertex(s, sp, g1, g2, w) {
         if (fringe.content.indexOf(sp) < 0) {
             fringe.remove(sp);
         }
-        sp.f = sp.g + (w * akriteanDistance(sp.x, sp.y, g1, g2));
+        sp.f = sp.g + (w * manhattanDistance(sp.x, sp.y, g1, g2));
         fringe.push(sp);
     }
 }
