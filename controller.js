@@ -725,7 +725,7 @@ function astar(w){
         'y' : goalCoord.y
     }
 
-    let h = manhattanDistance(start.x, start.y, goal.x, goal.y);
+    let h = euclideanDistance(start.x, start.y, goal.x, goal.y);
     start.f = (start.g) + (w*h);
     
     fringe.push(start);
@@ -736,7 +736,7 @@ function astar(w){
         expanded++;
         // console.log(fringe.size());
         let s = fringe.pop();
-        s.f = s.g + (w * manhattanDistance(s.x, s.y, goal.x, goal.y));
+        s.f = s.g + (w * euclideanDistance(s.x, s.y, goal.x, goal.y));
         if (s.x === goal.x && s.y === goal.y) {
             console.log("Path found!");
             var endTime = window.performance.now();
@@ -765,10 +765,9 @@ function astar(w){
     console.log("No path found.");
 }
 
-function sequentialAStar(){
+/*function sequentialAStar(){
     
-    open = new BinaryHeap(function(cell) { return cell.f; });
-    closed = new BinaryHeap(function(cell) { return cell.g; });
+    open = new BinaryHeap(function(cell) { return cell.key; });
 
     grid = [];
     for (let row = 0; row < 120; row++) {
@@ -777,8 +776,10 @@ function sequentialAStar(){
             grid[row].push({
                 'x': col,
                 'y': row,
-                'f': 0,
+                'h': 0,
                 'g': Number.MAX_SAFE_INTEGER,
+                'bp': null,
+                'key': 0,
                 'parent': {
                     'x': null,
                     'y': null
@@ -786,19 +787,45 @@ function sequentialAStar(){
             });
         }
     }
+    closed = [];
     
-    for(var i=0; i<n; i++){
-        
+    let start = {
+        'x' : startCoord.x, 
+        'y' : startCoord.y,
+        'h' : 0,
+        'g' : 0,
+        'bp': null,
+        'key': 0,
+        'parent' : {
+            'x': startCoord.x,
+            'y': startCoord.y
+        }
     }
-}
+    
+    
+    grid[start.y][start.x].parent = start.parent;
+    grid[start.y][start.x].f = 0;
+    grid[start.y][start.x].g = 0;
 
-function keys(s, i){
-    var f = s.g + w1 * s.h;
+    let goal = {
+        'x' : goalCoord.x,
+        'y' : goalCoord.y,
+        'g' : Number.MAX_SAFE_INTEGER,
+        'bp': null
+    }
+    
+    var tmp = getKey(start, )
+    open.push(start);
+    
+}*/
+
+function getKey(s, i){
+    var f = s.g + w * s.h;
     return f;
 }
 
 function expandStates(s, i){
-    open.remove(s);
+    open.pop(s);
     
     let succ = getNeighbors(s);
     for (let i = 0; i < succ.length; i++) {
@@ -825,7 +852,7 @@ function updateVertex(s, sp, g1, g2, w) {
         if (fringe.content.indexOf(sp) < 0) {
             fringe.remove(sp);
         }
-        sp.f = sp.g + (w * manhattanDistance(sp.x, sp.y, g1, g2));
+        sp.f = sp.g + (w * euclideanDistance(sp.x, sp.y, g1, g2));
         fringe.push(sp);
     }
 }
@@ -833,7 +860,7 @@ function updateVertex(s, sp, g1, g2, w) {
 function euclideanDistance(s1, s2, g1, g2){
     var d1 = s1 - g1,
         d2 = s2 - g2;
-    var estimate = Math.sqrt(d1*d1 + d2*d2);
+    var estimate = Math.sqrt(d1*d1 + d2*d2) / 4;
     //console.log("Estimate: " + estimate);
     return estimate;
 }

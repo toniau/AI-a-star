@@ -25,6 +25,7 @@ td {
     
 .tab {
     padding-left: 16px;
+    cursor: pointer;
 }
 
 #search-btn {
